@@ -122,18 +122,19 @@ func (c *Client) Task(taskID int) *Task {
 	return task
 }
 
-func (c *Client) UpdateTask(taskID int, body io.Reader) bool {
-	req, err := http.NewRequest("PUT", c.baseUrl+"/tasks/"+convertIntToString(taskID), body)
+func (c *Client) UpdateTask(taskID int, body io.Reader) *Task {
+	data, err := c.PUT(c.baseUrl+"/tasks/"+convertIntToString(taskID), body)
 	if err != nil {
 		log.Panic(err)
 	}
 
-	_, err = c.Call(req)
+	task := new(Task)
+	err = mapstructure.Decode(data["data"], &task)
 	if err != nil {
 		log.Panic(err)
 	}
 
-	return true
+	return task
 }
 
 func (c *Client) TaskStories(taskID int) *[]Story {
@@ -165,7 +166,6 @@ func (c *Client) TaskStories(taskID int) *[]Story {
 		}
 
 		collection = col
-		fmt.Println(col.NextPageUrl())
 		stories = append(stories, *collection.Stories()...)
 	}
 
@@ -187,6 +187,23 @@ func (c *Client) Call(req *http.Request) (map[string]interface{}, error) {
 func (c *Client) GET(url string) (map[string]interface{}, error) {
 
 	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Authorization", "Bearer "+c.token)
+	req.Header.Set("Content-Type", "application/json")
+
+	result, err := c.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	return jsonParse(result.Body)
+}
+
+func (c *Client) PUT(url string, body io.Reader) (map[string]interface{}, error) {
+	req, err := http.NewRequest("PUT", url, body)
 	if err != nil {
 		return nil, err
 	}

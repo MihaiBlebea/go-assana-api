@@ -1,17 +1,31 @@
 package main
 
 import (
+	"bytes"
+	"fmt"
 	"log"
+	"math/rand"
+	"strconv"
 	"time"
 
 	"encoding/json"
 	"net/http"
 	"os"
+	"sync"
 
+	"github.com/joho/godotenv"
 	"github.com/julienschmidt/httprouter"
+	"github.com/mitchellh/mapstructure"
 )
 
 const baseUrl = "https://app.asana.com/api/1.0"
+
+func init() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Print("No .env file found")
+	}
+}
 
 func main() {
 
@@ -63,6 +77,62 @@ func main() {
 		log.Println(completeTime)
 	})
 
+	var webhookMutex sync.Mutex
+
+	router.POST("/webhook/:id", func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		data, err := jsonParse(r.Body)
+		if err != nil {
+			log.Panic(err)
+		}
+
+		var events []Event
+		err = mapstructure.Decode(data["events"], &events)
+		if err != nil {
+			log.Panic(err)
+		}
+
+		for _, event := range events {
+			if event.Resource.Resource_type == "task" && event.Action == "added" {
+
+				gid, err := strconv.Atoi(event.Resource.Gid)
+				if err != nil {
+					log.Panic(err)
+				}
+				task := client.Task(gid)
+
+				for _, field := range task.Custom_Fields {
+					if field.Name == "Unique ID" && field.Number_Value == 0 {
+
+						webhookMutex.Lock()
+
+						data := map[string]map[string]map[string]int{
+							"data": {
+								"custom_fields": {
+									"1146745094235892": getRandomId(1000),
+								},
+							},
+						}
+
+						encoded, err := json.Marshal(data)
+						if err != nil {
+							log.Panic(err)
+						}
+
+						reader := bytes.NewReader(encoded)
+
+						fmt.Println(data)
+						client.UpdateTask(task.Id, reader)
+
+						webhookMutex.Unlock()
+					}
+				}
+			}
+		}
+
+		w.Header().Add("X-Hook-Secret", r.Header.Get("X-Hook-Secret"))
+		w.WriteHeader(200)
+	})
+
 	http.ListenAndServe(":"+getPort(), router)
 }
 
@@ -73,8 +143,8 @@ func getPort() string {
 	return "8083"
 }
 
-// client id 1146727810660992
-
-// client secret 6ab659430e63172a5ef7096ef632a0f9
-
-// Sprint review token 0/140204d60a962b96ee4cfcb4ec9dff87
+func getRandomId(max int) int {
+	seed := rand.NewSource(time.Now().UnixNano())
+	random := rand.New(seed)
+	return random.Intn(max)
+}
