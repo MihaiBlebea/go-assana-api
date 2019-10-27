@@ -1,27 +1,76 @@
 package main
 
-import "fmt"
+import (
+	"log"
+	"time"
 
-var baseUrl = "https://app.asana.com/api/1.0"
-var token = "0/140204d60a962b96ee4cfcb4ec9dff87"
+	"encoding/json"
+	"net/http"
+	"os"
+
+	"github.com/julienschmidt/httprouter"
+)
+
+const baseUrl = "https://app.asana.com/api/1.0"
 
 func main() {
-	client := NewAsanaSDK(token, "1114955233304260")
-	// tasks := client.ProjectTasks(1143429561288049, 10)
 
-	// for _, task := range *tasks {
-	// 	tsk := client.Task(task.Id)
-	// 	fmt.Println(tsk)
-	// }
+	if os.Getenv("ASANA_TOKEN") == "" {
+		log.Panic("No Asana token found")
+	}
 
-	task := client.Task(1144629399438001)
+	if os.Getenv("ASANA_WORKSPACE") == "" {
+		log.Panic("No Asana workspace found")
+	}
 
-	stories := client.TaskStories(task.Id, 20)
+	client := NewClient(os.Getenv("ASANA_TOKEN"), os.Getenv("ASANA_WORKSPACE"))
 
-	fmt.Println(stories)
+	router := httprouter.New()
 
-	// client.ChangeTaskName(task.Id, "123"+task.Name)
+	router.GET("/projects", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		startTime := time.Now()
 
+		projects := client.Projects()
+
+		resp, err := json.Marshal(projects)
+		if err != nil {
+			log.Panic(err)
+		}
+
+		w.Write(resp)
+
+		completeTime := time.Now().Sub(startTime)
+		log.Println(completeTime)
+	})
+
+	router.GET("/tasks", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		startTime := time.Now()
+
+		projects := client.Projects()
+
+		fs := (*projects)[6]
+
+		tasks := client.ProjectTasks(fs.Id)
+
+		resp, err := json.Marshal(tasks)
+		if err != nil {
+			log.Panic(err)
+		}
+
+		w.Write(resp)
+
+		completeTime := time.Now().Sub(startTime)
+		log.Println(completeTime)
+	})
+
+	http.ListenAndServe(":"+getPort(), router)
+}
+
+func getPort() string {
+	if os.Getenv("PORT") != "" {
+		return os.Getenv("PORT")
+	}
+	return "8083"
 }
 
 // client id 1146727810660992

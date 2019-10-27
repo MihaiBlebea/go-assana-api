@@ -2,12 +2,17 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/mitchellh/mapstructure"
+)
+
+const (
+	limit = 20
 )
 
 type Client struct {
@@ -18,12 +23,7 @@ type Client struct {
 }
 
 func (c *Client) Project(projectID int) *Project {
-	req, err := http.NewRequest("GET", c.baseUrl+"/projects/"+convertIntToString(projectID)+"?opt_expand=team,id,owner&opt_fields=name,id,owner,workspace", nil)
-	if err != nil {
-		log.Panic(err)
-	}
-
-	data, err := c.Call(req)
+	data, err := c.GET(c.baseUrl + "/projects/" + convertIntToString(projectID) + "?opt_expand=team,id,owner&opt_fields=name,id,owner,workspace")
 	if err != nil {
 		log.Panic(err)
 	}
@@ -37,53 +37,78 @@ func (c *Client) Project(projectID int) *Project {
 	return project
 }
 
-func (c *Client) Projects(workspace, limit int) *[]Project {
-	req, err := http.NewRequest("GET", c.baseUrl+"/projects?limit="+convertIntToString(limit)+"&workspace="+c.workspace, nil)
+func (c *Client) Projects() *[]Project {
+	data, err := c.GET(c.baseUrl + "/projects?limit=" + convertIntToString(limit) + "&workspace=" + c.workspace)
 	if err != nil {
 		log.Panic(err)
 	}
 
-	data, err := c.Call(req)
+	var projects []Project
+	var collection ProjectCollection
+	err = mapstructure.Decode(data, &collection)
 	if err != nil {
 		log.Panic(err)
 	}
 
-	projects := new([]Project)
-	err = mapstructure.Decode(data["data"], &projects)
-	if err != nil {
-		log.Panic(err)
-	}
+	projects = append(projects, *collection.Projects()...)
 
-	return projects
+	for collection.NextPageUrl() != "" {
+
+		data, err := c.GET(collection.NextPageUrl())
+		if err != nil {
+			log.Panic(err)
+		}
+
+		var col ProjectCollection
+		err = mapstructure.Decode(data, &col)
+		if err != nil {
+			log.Panic(err)
+		}
+
+		collection = col
+		fmt.Println(col.NextPageUrl())
+		projects = append(projects, *collection.Projects()...)
+	}
+	return &projects
 }
 
-func (c *Client) ProjectTasks(projectID, limit int) *[]Task {
-	req, err := http.NewRequest("GET", c.baseUrl+"/projects/"+convertIntToString(projectID)+"/tasks?opt_expand=name&opt_fields=name,id,owner,team&limit="+convertIntToString(limit), nil)
+func (c *Client) ProjectTasks(projectID int) *[]Task {
+	data, err := c.GET(c.baseUrl + "/projects/" + convertIntToString(projectID) + "/tasks?opt_expand=name&opt_fields=name,id,owner,team&limit=" + convertIntToString(limit))
 	if err != nil {
 		log.Panic(err)
 	}
 
-	data, err := c.Call(req)
+	var tasks []Task
+	var collection TaskCollection
+	err = mapstructure.Decode(data, &collection)
 	if err != nil {
 		log.Panic(err)
 	}
 
-	tasks := new([]Task)
-	err = mapstructure.Decode(data["data"], &tasks)
-	if err != nil {
-		log.Panic(err)
+	tasks = append(tasks, *collection.Tasks()...)
+
+	for collection.NextPageUrl() != "" {
+		data, err := c.GET(collection.NextPageUrl())
+		if err != nil {
+			log.Panic(err)
+		}
+
+		var col TaskCollection
+		err = mapstructure.Decode(data, &col)
+		if err != nil {
+			log.Panic(err)
+		}
+
+		collection = col
+		fmt.Println(col.NextPageUrl())
+		tasks = append(tasks, *collection.Tasks()...)
 	}
 
-	return tasks
+	return &tasks
 }
 
 func (c *Client) Task(taskID int) *Task {
-	req, err := http.NewRequest("GET", c.baseUrl+"/tasks/"+convertIntToString(taskID), nil)
-	if err != nil {
-		log.Panic(err)
-	}
-
-	data, err := c.Call(req)
+	data, err := c.GET(c.baseUrl + "/tasks/" + convertIntToString(taskID))
 	if err != nil {
 		log.Panic(err)
 	}
@@ -111,37 +136,40 @@ func (c *Client) UpdateTask(taskID int, body io.Reader) bool {
 	return true
 }
 
-func (c *Client) TaskStories(taskID, limit int) *[]Story {
-	req, err := http.NewRequest("GET", c.baseUrl+"/tasks/"+convertIntToString(taskID)+"/stories?limit="+convertIntToString(limit), nil)
+func (c *Client) TaskStories(taskID int) *[]Story {
+	data, err := c.GET(c.baseUrl + "/tasks/" + convertIntToString(taskID) + "/stories?limit=" + convertIntToString(limit))
 	if err != nil {
 		log.Panic(err)
 	}
 
-	data, err := c.Call(req)
+	var stories []Story
+	var collection StoryCollection
+	err = mapstructure.Decode(data, &collection)
 	if err != nil {
 		log.Panic(err)
 	}
 
-	stories := new([]Story)
-	err = mapstructure.Decode(data["data"], &stories)
-	if err != nil {
-		log.Panic(err)
+	stories = append(stories, *collection.Stories()...)
+
+	for collection.NextPageUrl() != "" {
+
+		data, err := c.GET(collection.NextPageUrl())
+		if err != nil {
+			log.Panic(err)
+		}
+
+		var col StoryCollection
+		err = mapstructure.Decode(data, &col)
+		if err != nil {
+			log.Panic(err)
+		}
+
+		collection = col
+		fmt.Println(col.NextPageUrl())
+		stories = append(stories, *collection.Stories()...)
 	}
 
-	return stories
-}
-
-func (c *Client) NextPage(uri string) map[string]interface{} {
-	req, err := http.NewRequest("GET", uri, nil)
-	if err != nil {
-		log.Panic(err)
-	}
-
-	result, err := c.Call(req)
-	if err != nil {
-		log.Panic(err)
-	}
-	return result
+	return &stories
 }
 
 func (c *Client) Call(req *http.Request) (map[string]interface{}, error) {
@@ -156,7 +184,25 @@ func (c *Client) Call(req *http.Request) (map[string]interface{}, error) {
 	return jsonParse(result.Body)
 }
 
-func NewAsanaSDK(token, workspace string) *Client {
+func (c *Client) GET(url string) (map[string]interface{}, error) {
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Authorization", "Bearer "+c.token)
+	req.Header.Set("Content-Type", "application/json")
+
+	result, err := c.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	return jsonParse(result.Body)
+}
+
+func NewClient(token, workspace string) *Client {
 	client := &http.Client{}
 	return &Client{client, "https://app.asana.com/api/1.0", token, workspace}
 }
