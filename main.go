@@ -16,6 +16,8 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/julienschmidt/httprouter"
 	"github.com/mitchellh/mapstructure"
+
+	_ "github.com/lib/pq"
 )
 
 const baseUrl = "https://app.asana.com/api/1.0"
