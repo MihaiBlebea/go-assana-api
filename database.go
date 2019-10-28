@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"os"
 
@@ -14,77 +15,79 @@ func init() {
 		log.Panic(err)
 	}
 
-	createTable(db)
+	fmt.Println(db)
+
+	// createTable(db)
 }
 
 func connectDB(url string) (*sql.DB, error) {
 	return sql.Open("postgres", url)
 }
 
-func createTable(db *sql.DB) {
-	defer db.Close()
+// func createTable(db *sql.DB) {
+// 	defer db.Close()
 
-	stm, err := db.Prepare(`
-		CREATE TABLE IF NOT EXISTS tasks(
-			id INT AUTO_INCREMENT PRIMARY KEY,
-			task_id TEXT
-		)
-	`)
-	if err != nil {
-		log.Panic(err)
-	}
+// 	stm, err := db.Prepare(`
+// 		CREATE TABLE IF NOT EXISTS tasks(
+// 			id INT AUTO_INCREMENT PRIMARY KEY,
+// 			task_id TEXT
+// 		)
+// 	`)
+// 	if err != nil {
+// 		log.Panic(err)
+// 	}
 
-	_, err = stm.Exec()
-}
+// 	_, err = stm.Exec()
+// }
 
-func checkTaskExists(db *sql.DB, taskID int) bool {
-	defer db.Close()
+// func checkTaskExists(db *sql.DB, taskID int) bool {
+// 	defer db.Close()
 
-	var id int
+// 	var id int
 
-	row := db.QueryRow(`
-		SELECT 
-			*
-		FROM 
-			tasks 
-		WHERE 
-			id = ?
-		LIMIT 1`, taskID)
+// 	row := db.QueryRow(`
+// 		SELECT
+// 			*
+// 		FROM
+// 			tasks
+// 		WHERE
+// 			id = ?
+// 		LIMIT 1`, taskID)
 
-	err := row.Scan(&id, &taskID)
-	if err != nil {
-		log.Panic(err)
-	}
+// 	err := row.Scan(&id, &taskID)
+// 	if err != nil {
+// 		log.Panic(err)
+// 	}
 
-	if id != 0 {
-		return true
-	}
-	return false
-}
+// 	if id != 0 {
+// 		return true
+// 	}
+// 	return false
+// }
 
-func addTask(db *sql.DB, taskID int) int {
-	defer db.Close()
+// func addTask(db *sql.DB, taskID int) int {
+// 	defer db.Close()
 
-	stm, err := db.Prepare(`
-		INSERT INTO tasks
-			(task_id) 
-		VALUES 
-			(?)
-	`)
+// 	stm, err := db.Prepare(`
+// 		INSERT INTO tasks
+// 			(task_id)
+// 		VALUES
+// 			(?)
+// 	`)
 
-	if err != nil {
-		log.Panic(err)
-	}
+// 	if err != nil {
+// 		log.Panic(err)
+// 	}
 
-	res, err := stm.Exec(taskID)
-	if err != nil {
-		log.Panic(err)
-	}
+// 	res, err := stm.Exec(taskID)
+// 	if err != nil {
+// 		log.Panic(err)
+// 	}
 
-	id, err := res.LastInsertId()
-	if err != nil {
-		log.Panic(err)
-	}
+// 	id, err := res.LastInsertId()
+// 	if err != nil {
+// 		log.Panic(err)
+// 	}
 
-	return int(id)
-}
+// 	return int(id)
+// }
