@@ -2,35 +2,31 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"os"
 
 	_ "github.com/lib/pq"
 )
 
-func init() {
-	db, err := connectDB(os.Getenv("DATABASE_URL"))
-	if err != nil {
-		log.Panic(err)
-	}
-
-	fmt.Println(db)
-
-	createTable(db)
-}
-
 func connectDB(url string) (*sql.DB, error) {
 	return sql.Open("postgres", url)
 }
 
-func createTable(db *sql.DB) {
+func createTable() {
+	db, err := connectDB(os.Getenv("DATABASE_URL"))
+	if err != nil {
+		log.Panic(err)
+	}
 	defer db.Close()
 
+	err = db.Ping()
+	if err != nil {
+		log.Panic(err)
+	}
 	stm, err := db.Prepare(`
-		CREATE TABLE IF NOT EXISTS tasks(
-			id INT AUTO_INCREMENT PRIMARY KEY,
-			task_id TEXT
+		CREATE TABLE IF NOT EXISTS tasks (
+			id SERIAL PRIMARY KEY,
+			task_id integer NOT NULL
 		)
 	`)
 	if err != nil {
@@ -40,7 +36,11 @@ func createTable(db *sql.DB) {
 	_, err = stm.Exec()
 }
 
-func checkTaskExists(db *sql.DB, taskID int) bool {
+func checkTaskExists(taskID int) bool {
+	db, err := connectDB(os.Getenv("DATABASE_URL"))
+	if err != nil {
+		log.Panic(err)
+	}
 	defer db.Close()
 
 	var id int
@@ -54,7 +54,7 @@ func checkTaskExists(db *sql.DB, taskID int) bool {
 			id = ?
 		LIMIT 1`, taskID)
 
-	err := row.Scan(&id, &taskID)
+	err = row.Scan(&id, &taskID)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -65,7 +65,11 @@ func checkTaskExists(db *sql.DB, taskID int) bool {
 	return false
 }
 
-func addTask(db *sql.DB, taskID int) int {
+func addTask(taskID int) int {
+	db, err := connectDB(os.Getenv("DATABASE_URL"))
+	if err != nil {
+		log.Panic(err)
+	}
 	defer db.Close()
 
 	stm, err := db.Prepare(`

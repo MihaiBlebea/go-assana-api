@@ -27,10 +27,10 @@ func init() {
 	if err != nil {
 		log.Print("No .env file found")
 	}
+	createTable()
 }
 
 func main() {
-
 	if os.Getenv("ASANA_TOKEN") == "" {
 		log.Panic("No Asana token found")
 	}
@@ -105,12 +105,22 @@ func main() {
 				for _, field := range task.Custom_Fields {
 					if field.Name == "Unique ID" && field.Number_Value == 0 {
 
+						// Check if the task exists in the database
+						found := checkTaskExists(task.Id)
+
+						fmt.Println(found)
+
+						if found == false {
+							continue
+						}
+						taskUID := addTask(task.Id)
+
 						webhookMutex.Lock()
 
 						data := map[string]map[string]map[string]int{
 							"data": {
 								"custom_fields": {
-									"1146745094235892": getRandomId(1000),
+									"1146745094235892": taskUID,
 								},
 							},
 						}
