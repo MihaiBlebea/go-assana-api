@@ -128,6 +128,7 @@ func (c *Client) UpdateTask(taskID int, body io.Reader) *Task {
 		log.Panic(err)
 	}
 
+	fmt.Println(data)
 	task := new(Task)
 	err = mapstructure.Decode(data["data"], &task)
 	if err != nil {
