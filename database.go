@@ -51,7 +51,7 @@ func checkTaskExists(taskID int) bool {
 		FROM
 			tasks
 		WHERE
-			id = ?
+			id = $1
 	`, taskID)
 
 	err = row.Scan(&id, &taskID)
@@ -73,7 +73,7 @@ func addTask(taskID int) int {
 	defer db.Close()
 
 	stm, err := db.Prepare(`
-		INSERT INTO tasks (task_id) VALUES (?)
+		INSERT INTO tasks (task_id) VALUES ($1)
 	`)
 
 	if err != nil {
