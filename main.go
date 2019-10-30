@@ -11,7 +11,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
-	"sync"
 
 	"github.com/joho/godotenv"
 	"github.com/julienschmidt/httprouter"
@@ -79,8 +78,6 @@ func main() {
 		log.Println(completeTime)
 	})
 
-	var webhookMutex sync.Mutex
-
 	router.POST("/webhook/:id", func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		data, err := jsonParse(r.Body)
 		if err != nil {
@@ -103,19 +100,18 @@ func main() {
 				task := client.Task(gid)
 
 				for _, field := range task.Custom_Fields {
+					fmt.Println("Looping")
 					if field.Name == "Unique ID" && field.Number_Value == 0 {
 
 						// Check if the task exists in the database
 						found := checkTaskExists(task.Id)
 
-						fmt.Println(found)
+						fmt.Println("FOUND", found)
 
 						if found == false {
 							continue
 						}
 						taskUID := addTask(task.Id)
-
-						webhookMutex.Lock()
 
 						data := map[string]map[string]map[string]int{
 							"data": {
@@ -134,8 +130,6 @@ func main() {
 
 						fmt.Println(data)
 						client.UpdateTask(task.Id, reader)
-
-						webhookMutex.Unlock()
 					}
 				}
 			}
