@@ -131,7 +131,9 @@ func main() {
 						reader := bytes.NewReader(encoded)
 
 						fmt.Println(data)
-						client.UpdateTask(task.Id, reader)
+						updatedTask := client.UpdateTask(task.Id, reader)
+
+						fmt.Println(updatedTask.Custom_Fields)
 					}
 				}
 			}

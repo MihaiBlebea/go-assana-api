@@ -89,16 +89,4 @@ func addTask(taskID int) int {
 	}
 
 	return lastInsertId
-
-	// res, err := stm.Exec(taskID)
-	// if err != nil {
-	// 	log.Panic(err)
-	// }
-
-	// id, err := res.LastInsertId()
-	// if err != nil {
-	// 	log.Panic(err)
-	// }
-
-	// return int(id)
 }
