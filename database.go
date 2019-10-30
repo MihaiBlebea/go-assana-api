@@ -55,6 +55,11 @@ func checkTaskExists(taskID int) bool {
 	`, taskID)
 
 	err = row.Scan(&id, &taskID)
+
+	if err == sql.ErrNoRows {
+		return false
+	}
+
 	if err != nil {
 		log.Panic(err)
 	}
