@@ -77,23 +77,28 @@ func addTask(taskID int) int {
 	}
 	defer db.Close()
 
-	stm, err := db.Prepare(`
-		INSERT INTO tasks (task_id) VALUES ($1)
-	`)
+	lastInsertId := 0
+	err = db.QueryRow(`INSERT INTO tasks (task_id) VALUES ($1) RETURNING id`).Scan(&lastInsertId)
 
 	if err != nil {
 		log.Panic(err)
 	}
 
-	res, err := stm.Exec(taskID)
-	if err != nil {
-		log.Panic(err)
+	if lastInsertId == 0 {
+		log.Panic("Id not found")
 	}
 
-	id, err := res.LastInsertId()
-	if err != nil {
-		log.Panic(err)
-	}
+	return lastInsertId
 
-	return int(id)
+	// res, err := stm.Exec(taskID)
+	// if err != nil {
+	// 	log.Panic(err)
+	// }
+
+	// id, err := res.LastInsertId()
+	// if err != nil {
+	// 	log.Panic(err)
+	// }
+
+	// return int(id)
 }
