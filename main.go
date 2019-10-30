@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"log"
 	"math/rand"
 	"time"
@@ -89,27 +88,16 @@ func main() {
 			log.Panic(err)
 		}
 
-		fmt.Println("New webhook payload received")
-
 		for _, event := range events {
 			if event.Resource.Resource_type == "task" && event.Action == "added" {
 
-				// gid, err := strconv.Atoi(event.Resource.Gid)
-				// if err != nil {
-				// 	log.Panic(err)
-				// }
 				task := client.Task(event.Resource.Gid)
 
-				fmt.Println("DATA1", task, task.Gid)
-
 				for _, field := range task.Custom_Fields {
-					fmt.Println("Looping")
 					if field.Name == "Unique ID" && field.Number_Value == 0 {
 
 						// Check if the task exists in the database
 						found := checkTaskExists(task.Gid)
-
-						fmt.Println("FOUND", found)
 
 						if found == true {
 							continue
@@ -131,11 +119,7 @@ func main() {
 
 						reader := bytes.NewReader(encoded)
 
-						fmt.Println(data)
-						fmt.Println("DATA", task, task.Gid)
-						updatedTask := client.UpdateTask(task.Gid, reader)
-
-						fmt.Println(updatedTask.Custom_Fields)
+						client.UpdateTask(task.Gid, reader)
 					}
 				}
 			}
