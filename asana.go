@@ -112,7 +112,7 @@ func (c *Client) Task(taskID int) *Task {
 	if err != nil {
 		log.Panic(err)
 	}
-
+	fmt.Println(data)
 	task := new(Task)
 	err = mapstructure.Decode(data["data"], &task)
 	if err != nil {
