@@ -90,6 +90,8 @@ func main() {
 			log.Panic(err)
 		}
 
+		fmt.Println("New webhook payload received")
+
 		for _, event := range events {
 			if event.Resource.Resource_type == "task" && event.Action == "added" {
 
