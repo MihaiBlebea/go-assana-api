@@ -101,6 +101,8 @@ func main() {
 				}
 				task := client.Task(gid)
 
+				fmt.Println("DATA1", task, task.Id)
+
 				for _, field := range task.Custom_Fields {
 					fmt.Println("Looping")
 					if field.Name == "Unique ID" && field.Number_Value == 0 {
