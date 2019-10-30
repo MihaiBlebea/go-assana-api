@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
-	"strconv"
 	"time"
 
 	"encoding/json"
@@ -95,27 +94,27 @@ func main() {
 		for _, event := range events {
 			if event.Resource.Resource_type == "task" && event.Action == "added" {
 
-				gid, err := strconv.Atoi(event.Resource.Gid)
-				if err != nil {
-					log.Panic(err)
-				}
-				task := client.Task(gid)
+				// gid, err := strconv.Atoi(event.Resource.Gid)
+				// if err != nil {
+				// 	log.Panic(err)
+				// }
+				task := client.Task(event.Resource.Gid)
 
-				fmt.Println("DATA1", task, task.Id)
+				fmt.Println("DATA1", task, task.Gid)
 
 				for _, field := range task.Custom_Fields {
 					fmt.Println("Looping")
 					if field.Name == "Unique ID" && field.Number_Value == 0 {
 
 						// Check if the task exists in the database
-						found := checkTaskExists(task.Id)
+						found := checkTaskExists(task.Gid)
 
 						fmt.Println("FOUND", found)
 
 						if found == true {
 							continue
 						}
-						taskUID := addTask(task.Id)
+						taskUID := addTask(task.Gid)
 
 						data := map[string]map[string]map[string]int{
 							"data": {

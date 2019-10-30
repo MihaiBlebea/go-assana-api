@@ -6,7 +6,8 @@ import (
 )
 
 type Task struct {
-	Id            int
+	// Id            int
+	Gid           string
 	Name          string
 	Assignee      User
 	Completed     bool

@@ -26,7 +26,7 @@ func createTable() {
 	stm, err := db.Prepare(`
 		CREATE TABLE IF NOT EXISTS tasks (
 			id SERIAL PRIMARY KEY,
-			task_id integer NOT NULL
+			task_gid VARCHAR(250) NOT NULL
 		)
 	`)
 	if err != nil {
@@ -36,7 +36,7 @@ func createTable() {
 	_, err = stm.Exec()
 }
 
-func checkTaskExists(taskID int) bool {
+func checkTaskExists(taskGid string) bool {
 	db, err := connectDB(os.Getenv("DATABASE_URL"))
 	if err != nil {
 		log.Panic(err)
@@ -51,10 +51,10 @@ func checkTaskExists(taskID int) bool {
 		FROM
 			tasks
 		WHERE
-			id = $1
-	`, taskID)
+			task_gid = $1
+	`, taskGid)
 
-	err = row.Scan(&id, &taskID)
+	err = row.Scan(&id, &taskGid)
 
 	if err == sql.ErrNoRows {
 		return false
@@ -70,7 +70,7 @@ func checkTaskExists(taskID int) bool {
 	return false
 }
 
-func addTask(taskID int) int {
+func addTask(taskGid string) int {
 	db, err := connectDB(os.Getenv("DATABASE_URL"))
 	if err != nil {
 		log.Panic(err)
@@ -78,7 +78,7 @@ func addTask(taskID int) int {
 	defer db.Close()
 
 	lastInsertId := 0
-	err = db.QueryRow(`INSERT INTO tasks (task_id) VALUES ($1) RETURNING id`, taskID).Scan(&lastInsertId)
+	err = db.QueryRow(`INSERT INTO tasks (task_gid) VALUES ($1) RETURNING id`, taskGid).Scan(&lastInsertId)
 
 	if err != nil {
 		log.Panic(err)

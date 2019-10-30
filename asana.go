@@ -107,8 +107,8 @@ func (c *Client) ProjectTasks(projectID int) *[]Task {
 	return &tasks
 }
 
-func (c *Client) Task(taskID int) *Task {
-	data, err := c.GET(c.baseUrl + "/tasks/" + convertIntToString(taskID))
+func (c *Client) Task(taskGid string) *Task {
+	data, err := c.GET(c.baseUrl + "/tasks/" + taskGid)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -122,8 +122,8 @@ func (c *Client) Task(taskID int) *Task {
 	return task
 }
 
-func (c *Client) UpdateTask(taskID int, body io.Reader) *Task {
-	data, err := c.PUT(c.baseUrl+"/tasks/"+convertIntToString(taskID), body)
+func (c *Client) UpdateTask(taskGid string, body io.Reader) *Task {
+	data, err := c.PUT(c.baseUrl+"/tasks/"+taskGid, body)
 	if err != nil {
 		log.Panic(err)
 	}
