@@ -78,7 +78,7 @@ func addTask(taskID int) int {
 	defer db.Close()
 
 	lastInsertId := 0
-	err = db.QueryRow(`INSERT INTO tasks (task_id) VALUES ($1) RETURNING id`).Scan(&lastInsertId)
+	err = db.QueryRow(`INSERT INTO tasks (task_id) VALUES ($1) RETURNING id`, taskID).Scan(&lastInsertId)
 
 	if err != nil {
 		log.Panic(err)
