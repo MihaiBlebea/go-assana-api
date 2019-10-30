@@ -110,7 +110,7 @@ func main() {
 
 						fmt.Println("FOUND", found)
 
-						if found == false {
+						if found == true {
 							continue
 						}
 						taskUID := addTask(task.Id)
