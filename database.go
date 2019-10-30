@@ -85,7 +85,7 @@ func addTask(taskGid string) int {
 	}
 
 	if lastInsertId == 0 {
-		log.Panic("Id not found")
+		log.Panic("Id not found2")
 	}
 
 	return lastInsertId
