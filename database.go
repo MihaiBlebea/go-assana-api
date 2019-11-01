@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"os"
 
@@ -126,6 +127,10 @@ func getTasks() []Task {
 	var tasks []Task
 	for row.Next() {
 		err = row.Scan(&id, &taskGid, &name, &created, &in_progress, &completed)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
 
 		task := Task{
 			Gid:          taskGid,
