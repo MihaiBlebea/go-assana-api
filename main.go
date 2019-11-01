@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"math/rand"
 	"time"
@@ -78,6 +79,8 @@ func main() {
 			log.Panic(err)
 		}
 
+		fmt.Println(data)
+
 		var events []Event
 		err = mapstructure.Decode(data["events"], &events)
 		if err != nil {
@@ -98,7 +101,7 @@ func main() {
 						if found == true {
 							continue
 						}
-						taskUID := addTask(task.Gid)
+						taskUID := addTask(task)
 
 						data := map[string]map[string]map[string]int{
 							"data": {
