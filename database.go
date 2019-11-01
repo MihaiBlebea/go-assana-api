@@ -87,7 +87,7 @@ func addTask(task Task) int {
 			(task_gid, name, created, in_progress, completed) 
 		VALUES 
 			($1, $2, $3, $4, $5)
-		RETURNING id`, task.Gid, task.Name, task.Created_At, task.Created_At, task.Completed).Scan(&lastInsertId)
+		RETURNING id`, task.Gid, task.Name, task.Created_At, task.Created_At, task.Completed_At).Scan(&lastInsertId)
 
 	if err != nil {
 		log.Panic(err)
