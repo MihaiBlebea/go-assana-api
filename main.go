@@ -59,12 +59,6 @@ func main() {
 	router.GET("/tasks", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		startTime := time.Now()
 
-		// projects := client.Projects()
-
-		// fs := (*projects)[6]
-
-		// tasks := client.ProjectTasks(fs.Id)
-
 		tasks := getTasks()
 
 		resp, err := json.Marshal(tasks)
