@@ -86,7 +86,7 @@ func addTask(task Task) int {
 		INSERT INTO tasks 
 			(task_gid, name, created, in_progress, completed) 
 		VALUES 
-			($1)
+			($1, $2, $3, $4, $5)
 		RETURNING id`, task.Gid, task.Name, task.Created_At, nil, task.Completed).Scan(&lastInsertId)
 
 	if err != nil {
