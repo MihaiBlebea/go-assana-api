@@ -62,6 +62,8 @@ func main() {
 
 		tasks := getTasks()
 
+		fmt.Println(tasks)
+
 		resp, err := json.Marshal(tasks)
 		if err != nil {
 			log.Panic(err)
