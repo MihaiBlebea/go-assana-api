@@ -101,7 +101,7 @@ func main() {
 						if found == true {
 							continue
 						}
-						taskUID := addTask(task)
+						taskUID := addTask(*task)
 
 						data := map[string]map[string]map[string]int{
 							"data": {
