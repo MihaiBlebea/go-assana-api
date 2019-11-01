@@ -30,7 +30,7 @@ func createTable() {
 			name VARCHAR(2000) NOT NULL,
 			created timestamp default NULL,
 			in_progress timestamp default NULL,
-			completed timestamp default NULL,
+			completed timestamp default NULL
 		)
 	`)
 	if err != nil {
