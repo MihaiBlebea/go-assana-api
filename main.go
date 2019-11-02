@@ -96,7 +96,7 @@ func main() {
 		}
 
 		for _, event := range events {
-			if event.Resource.Resource_type == "task" && event.Action == "added" {
+			if event.wasTaskAdded() == true {
 
 				found := checkTaskExists(event.Resource.Gid)
 
@@ -129,7 +129,7 @@ func main() {
 				client.UpdateTask(event.Resource.Gid, reader)
 			}
 
-			if event.Resource.Resource_type == "task" && event.Action == "deleted" {
+			if event.wasTaskDeleted() == true {
 				// Check if the task already exists in the database
 				found := checkTaskExists(event.Resource.Gid)
 

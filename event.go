@@ -13,3 +13,17 @@ type Resource struct {
 	Resource_type string
 	Created_at    string
 }
+
+func (e *Event) wasTaskAdded() bool {
+	if e.Resource.Resource_type == "task" && e.Action == "added" {
+		return true
+	}
+	return false
+}
+
+func (e *Event) wasTaskDeleted() bool {
+	if e.Resource.Resource_type == "task" && e.Action == "deleted" {
+		return true
+	}
+	return false
+}
