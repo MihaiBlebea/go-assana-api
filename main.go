@@ -66,6 +66,8 @@ func main() {
 		for _, dTask := range dTasks {
 			task := client.Task(dTask.Gid)
 
+			task.AddUniqueId(dTask.Id)
+
 			tasks = append(tasks, *task)
 		}
 		resp, err := json.Marshal(tasks)

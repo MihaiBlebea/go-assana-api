@@ -7,6 +7,7 @@ import (
 
 type Task struct {
 	Gid           string
+	UniqueId      int
 	Name          string
 	Assignee      User
 	Completed     bool
@@ -77,4 +78,8 @@ func (t *Task) GetDuration() (time.Duration, error) {
 	}
 
 	return completed.Sub(created), nil
+}
+
+func (t *Task) AddUniqueId(uniqueId int) {
+	t.UniqueId = uniqueId
 }
