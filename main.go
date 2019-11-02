@@ -60,10 +60,14 @@ func main() {
 	router.GET("/tasks", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		startTime := time.Now()
 
-		tasks := getTasks()
+		dTasks := getTasks()
 
-		fmt.Println(tasks)
+		var tasks []Task
+		for _, dTask := range dTasks {
+			task := client.Task(dTask.Gid)
 
+			tasks = append(tasks, *task)
+		}
 		resp, err := json.Marshal(tasks)
 		if err != nil {
 			log.Panic(err)
