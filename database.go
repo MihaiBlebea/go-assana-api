@@ -27,11 +27,8 @@ func createTable() {
 	stm, err := db.Prepare(`
 		CREATE TABLE IF NOT EXISTS tasks (
 			id SERIAL PRIMARY KEY,
-			task_gid VARCHAR(250) NOT NULL,
-			name VARCHAR(2000) NOT NULL,
-			created timestamp default NULL,
-			in_progress timestamp default NULL,
-			completed timestamp default NULL
+			gid VARCHAR(250) NOT NULL,
+			created timestamp default NULL
 		)
 	`)
 	if err != nil {
@@ -41,7 +38,7 @@ func createTable() {
 	_, err = stm.Exec()
 }
 
-func checkTaskExists(taskGid string) bool {
+func checkTaskExists(gid string) bool {
 	db, err := connectDB(os.Getenv("DATABASE_URL"))
 	if err != nil {
 		log.Panic(err)
@@ -56,10 +53,10 @@ func checkTaskExists(taskGid string) bool {
 		FROM
 			tasks
 		WHERE
-			task_gid = $1
-	`, taskGid)
+			gid = $1
+	`, gid)
 
-	err = row.Scan(&id, &taskGid)
+	err = row.Scan(&id, &gid)
 
 	if err == sql.ErrNoRows {
 		return false
@@ -85,10 +82,10 @@ func addTask(task Task) int {
 	lastInsertId := 0
 	err = db.QueryRow(`
 		INSERT INTO tasks 
-			(task_gid, name, created, in_progress, completed) 
+			(task_gid, created) 
 		VALUES 
-			($1, $2, $3, $4, $5)
-		RETURNING id`, task.Gid, task.Name, task.Created_At, task.Created_At, task.Created_At).Scan(&lastInsertId)
+			($1, $2)
+		RETURNING id`, task.Gid, task.Created_At).Scan(&lastInsertId)
 
 	if err != nil {
 		log.Panic(err)
@@ -101,7 +98,7 @@ func addTask(task Task) int {
 	return lastInsertId
 }
 
-func getTasks() []Task {
+func getTasks() []DatabaseTask {
 	db, err := connectDB(os.Getenv("DATABASE_URL"))
 	if err != nil {
 		log.Panic(err)
@@ -116,29 +113,20 @@ func getTasks() []Task {
 	`)
 
 	var (
-		id          int
-		taskGid     string
-		name        string
-		created     string
-		in_progress string
-		completed   string
+		id      int
+		gid     string
+		created string
 	)
 
-	var tasks []Task
+	var tasks []DatabaseTask
 	for row.Next() {
-		err = row.Scan(&id, &taskGid, &name, &created, &in_progress, &completed)
+		err = row.Scan(&id, &gid, &created)
 		if err != nil {
 			fmt.Println(err)
 			continue
 		}
 
-		task := Task{
-			Gid:          taskGid,
-			Name:         name,
-			Completed_At: completed,
-			Created_At:   created,
-		}
-
+		task := DatabaseTask{id, gid, created}
 		tasks = append(tasks, task)
 	}
 
