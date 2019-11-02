@@ -132,3 +132,21 @@ func getTasks() []DatabaseTask {
 
 	return tasks
 }
+
+func deleteTask(gid string) {
+	db, err := connectDB(os.Getenv("DATABASE_URL"))
+	if err != nil {
+		log.Panic(err)
+	}
+	defer db.Close()
+
+	stm, err := db.Prepare(`DELETE FROM tasks WHERE gid = $1`)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	_, err = stm.Exec(gid)
+	if err != nil {
+		log.Panic(err)
+	}
+}

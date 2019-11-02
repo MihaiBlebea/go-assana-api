@@ -130,6 +130,16 @@ func main() {
 					}
 				}
 			}
+
+			if event.Resource.Resource_type == "task" && event.Action == "deleted" {
+				// Check if the task already exists in the database
+				found := checkTaskExists(event.Resource.Gid)
+
+				if found == false {
+					continue
+				}
+				deleteTask(event.Resource.Gid)
+			}
 		}
 
 		w.Header().Add("X-Hook-Secret", r.Header.Get("X-Hook-Secret"))
