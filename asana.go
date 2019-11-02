@@ -112,7 +112,7 @@ func (c *Client) Task(taskGid string) *Task {
 	if err != nil {
 		log.Panic(err)
 	}
-	fmt.Println(data)
+
 	task := new(Task)
 	err = mapstructure.Decode(data["data"], &task)
 	if err != nil {
@@ -128,7 +128,6 @@ func (c *Client) UpdateTask(taskGid string, body io.Reader) *Task {
 		log.Panic(err)
 	}
 
-	fmt.Println(data)
 	task := new(Task)
 	err = mapstructure.Decode(data["data"], &task)
 	if err != nil {

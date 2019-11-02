@@ -6,7 +6,6 @@ import (
 )
 
 type Task struct {
-	// Id            int
 	Gid           string
 	Name          string
 	Assignee      User
@@ -19,7 +18,7 @@ type Task struct {
 type Tasks []Task
 
 type CustomField struct {
-	Id           int
+	Gid          string
 	Enum_Options []CustomFieldOption
 	Enum_Value   CustomFieldOption
 	Name         string
@@ -28,7 +27,7 @@ type CustomField struct {
 }
 
 type CustomFieldOption struct {
-	Id    int
+	Gid   string
 	Color string
 	Name  string
 }

@@ -1,7 +1,7 @@
 package main
 
 type Story struct {
-	Id               int
+	Gid              string
 	Name             string
 	Created_At       string
 	Created_By       User
