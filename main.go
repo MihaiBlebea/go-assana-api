@@ -98,37 +98,65 @@ func main() {
 		for _, event := range events {
 			if event.Resource.Resource_type == "task" && event.Action == "added" {
 
-				task := client.Task(event.Resource.Gid)
+				found := checkTaskExists(event.Resource.Gid)
 
-				for _, field := range task.Custom_Fields {
-					if field.Name == "Unique ID" && field.Number_Value == 0 {
-
-						// Check if the task exists in the database
-						found := checkTaskExists(task.Gid)
-
-						if found == true {
-							continue
-						}
-						taskUID := addTask(*task)
-
-						data := map[string]map[string]map[string]int{
-							"data": {
-								"custom_fields": {
-									"1146745094235892": taskUID,
-								},
-							},
-						}
-
-						encoded, err := json.Marshal(data)
-						if err != nil {
-							log.Panic(err)
-						}
-
-						reader := bytes.NewReader(encoded)
-
-						client.UpdateTask(task.Gid, reader)
-					}
+				if found == true {
+					continue
 				}
+
+				taskUID := addTask(DatabaseTask{
+					Gid:     event.Resource.Gid,
+					Created: event.Resource.Created_at,
+				})
+
+				data := map[string]map[string]map[string]int{
+					"data": {
+						"custom_fields": {
+							"1146745094235892": taskUID,
+						},
+					},
+				}
+
+				encoded, err := json.Marshal(data)
+				if err != nil {
+					log.Panic(err)
+				}
+
+				reader := bytes.NewReader(encoded)
+
+				client.UpdateTask(event.Resource.Gid, reader)
+
+				// task := client.Task(event.Resource.Gid)
+
+				// for _, field := range task.Custom_Fields {
+				// 	if field.Name == "Unique ID" && field.Number_Value == 0 {
+
+				// 		// Check if the task exists in the database
+				// 		found := checkTaskExists(task.Gid)
+
+				// 		if found == true {
+				// 			continue
+				// 		}
+				// 		taskUID := addTask(*task)
+
+				// 		data := map[string]map[string]map[string]int{
+				// 			"data": {
+				// 				"custom_fields": {
+				// 					"1146745094235892": taskUID,
+				// 				},
+				// 			},
+				// 		}
+
+				// 		encoded, err := json.Marshal(data)
+				// 		if err != nil {
+				// 			log.Panic(err)
+				// 		}
+
+				// 		reader := bytes.NewReader(encoded)
+
+				// 		client.UpdateTask(task.Gid, reader)
+				// 	}
+				// }
 			}
 
 			if event.Resource.Resource_type == "task" && event.Action == "deleted" {

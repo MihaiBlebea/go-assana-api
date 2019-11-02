@@ -75,7 +75,7 @@ func checkTaskExists(gid string) bool {
 	return false
 }
 
-func addTask(task Task) int {
+func addTask(task DatabaseTask) int {
 	db, err := connectDB(os.Getenv("DATABASE_URL"))
 	if err != nil {
 		log.Panic(err)
@@ -88,7 +88,7 @@ func addTask(task Task) int {
 			(gid, created) 
 		VALUES 
 			($1, $2)
-		RETURNING id`, task.Gid, task.Created_At).Scan(&lastInsertId)
+		RETURNING id`, task.Gid, task.Created).Scan(&lastInsertId)
 
 	if err != nil {
 		log.Panic(err)

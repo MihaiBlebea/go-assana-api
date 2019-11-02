@@ -2,7 +2,7 @@ package main
 
 type Event struct {
 	User       User
-	Created_At string
+	Created_at string
 	Action     string
 	Resource   Resource
 	Parent     Resource
@@ -11,4 +11,5 @@ type Event struct {
 type Resource struct {
 	Gid           string
 	Resource_type string
+	Created_at    string
 }
