@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"strconv"
 	"time"
 
 	"encoding/json"
@@ -79,6 +80,68 @@ func main() {
 
 		completeTime := time.Now().Sub(startTime)
 		log.Println(completeTime)
+	})
+
+	router.GET("/sprint/review/:number", func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		param := ps.ByName("number")
+
+		sprintNumber, err := strconv.Atoi(param)
+		if err != nil {
+			log.Panic(err)
+		}
+
+		tasks := client.SprintTasks(sprintNumber)
+
+		var (
+			fullTasks       []Task
+			totalPoints     int
+			completedPoints int
+		)
+
+		for _, task := range *tasks {
+			fullTask := client.Task(task.Gid)
+
+			taskPoint, err := fullTask.GetCustomFieldValue("Points")
+			if err != nil {
+				log.Panic(err)
+			}
+			totalPoints += taskPoint.(int)
+
+			status, err := fullTask.GetCustomFieldValue("Status")
+			if err != nil {
+				log.Panic(err)
+			}
+			if status == "Complete" {
+				completedPoints += taskPoint.(int)
+			}
+
+			fullTasks = append(fullTasks, *fullTask)
+		}
+
+		type Response struct {
+			Tasks           int
+			Points          int
+			PointsPerTask   int
+			PointsPerDay    int
+			PointsPerPerson int
+			CompletedPoints int
+			PointsLeft      int
+		}
+
+		resp, err := json.Marshal(Response{
+			Tasks:           len(fullTasks),
+			Points:          totalPoints,
+			PointsPerTask:   totalPoints / len(fullTasks),
+			PointsPerDay:    totalPoints / 10,
+			PointsPerPerson: totalPoints / 4,
+			CompletedPoints: completedPoints,
+			PointsLeft:      totalPoints - completedPoints,
+		})
+		if err != nil {
+			log.Panic(err)
+		}
+
+		w.Write(resp)
 	})
 
 	router.POST("/webhook/:id", func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {

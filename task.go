@@ -20,14 +20,14 @@ type Tasks []Task
 
 type CustomField struct {
 	Gid          string
-	Enum_Options []CustomFieldOption
-	Enum_Value   CustomFieldOption
+	Enum_Options []EnumOption
+	Enum_Value   EnumOption
 	Name         string
 	Type         string
 	Number_Value int
 }
 
-type CustomFieldOption struct {
+type EnumOption struct {
 	Gid   string
 	Color string
 	Name  string
@@ -78,6 +78,21 @@ func (t *Task) GetDuration() (time.Duration, error) {
 	}
 
 	return completed.Sub(created), nil
+}
+
+func (t *Task) GetCustomFieldValue(name string) (interface{}, error) {
+	for _, field := range t.Custom_Fields {
+		if field.Name == name {
+			if field.Type == "number" {
+				return field.Number_Value, nil
+			} else if field.Type == "enum" {
+				return field.Enum_Value.Name, nil
+			}
+
+			return nil, errors.New("Type not found")
+		}
+	}
+	return nil, errors.New("Custom field not found")
 }
 
 func (t *Task) AddUniqueId(uniqueId int) {

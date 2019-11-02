@@ -172,6 +172,41 @@ func (c *Client) TaskStories(taskID int) *[]Story {
 	return &stories
 }
 
+func (c *Client) SprintTasks(sprintNumber int) *[]Task {
+	data, err := c.GET(c.baseUrl + "/workspaces/" + c.workspace + "/tasks/search?custom_fields.1143434761447706.value=" + convertIntToString(sprintNumber))
+	if err != nil {
+		log.Panic(err)
+	}
+
+	var tasks []Task
+	var collection TaskCollection
+	err = mapstructure.Decode(data, &collection)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	tasks = append(tasks, *collection.Tasks()...)
+
+	for collection.NextPageUrl() != "" {
+		data, err := c.GET(collection.NextPageUrl())
+		if err != nil {
+			log.Panic(err)
+		}
+
+		var col TaskCollection
+		err = mapstructure.Decode(data, &col)
+		if err != nil {
+			log.Panic(err)
+		}
+
+		collection = col
+		tasks = append(tasks, *collection.Tasks()...)
+	}
+
+	return &tasks
+
+}
+
 func (c *Client) Call(req *http.Request) (map[string]interface{}, error) {
 	req.Header.Set("Authorization", "Bearer "+c.token)
 	req.Header.Set("Content-Type", "application/json")
