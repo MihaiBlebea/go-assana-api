@@ -82,7 +82,7 @@ func addTask(task Task) int {
 	lastInsertId := 0
 	err = db.QueryRow(`
 		INSERT INTO tasks 
-			(task_gid, created) 
+			(gid, created) 
 		VALUES 
 			($1, $2)
 		RETURNING id`, task.Gid, task.Created_At).Scan(&lastInsertId)
