@@ -45,7 +45,10 @@ func checkTaskExists(gid string) bool {
 	}
 	defer db.Close()
 
-	var id int
+	var (
+		id      int
+		created string
+	)
 
 	row := db.QueryRow(`
 		SELECT
@@ -56,7 +59,7 @@ func checkTaskExists(gid string) bool {
 			gid = $1
 	`, gid)
 
-	err = row.Scan(&id, &gid)
+	err = row.Scan(&id, &gid, &created)
 
 	if err == sql.ErrNoRows {
 		return false
