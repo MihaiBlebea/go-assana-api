@@ -22,8 +22,8 @@ type Client struct {
 	workspace string
 }
 
-func (c *Client) Project(projectID int) *Project {
-	data, err := c.GET(c.baseUrl + "/projects/" + convertIntToString(projectID) + "?opt_expand=team,id,owner&opt_fields=name,id,owner,workspace")
+func (c *Client) Project(gid string) *Project {
+	data, err := c.GET(c.baseUrl + "/projects/" + gid)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -72,8 +72,8 @@ func (c *Client) Projects() *[]Project {
 	return &projects
 }
 
-func (c *Client) ProjectTasks(projectID int) *[]Task {
-	data, err := c.GET(c.baseUrl + "/projects/" + convertIntToString(projectID) + "/tasks?opt_expand=name&opt_fields=name,id,owner,team&limit=" + convertIntToString(limit))
+func (c *Client) ProjectTasks(gid string) *[]Task {
+	data, err := c.GET(c.baseUrl + "/projects/" + gid + "/tasks?opt_expand=name&opt_fields=name,id,owner,team&limit=" + convertIntToString(limit))
 	if err != nil {
 		log.Panic(err)
 	}
@@ -204,7 +204,6 @@ func (c *Client) SprintTasks(sprintNumber int) *[]Task {
 	}
 
 	return &tasks
-
 }
 
 func (c *Client) Call(req *http.Request) (map[string]interface{}, error) {

@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"log"
 	"math/rand"
 	"strconv"
@@ -92,11 +91,15 @@ func main() {
 
 		tasks := client.SprintTasks(sprintNumber)
 
+		users := client.Project("1143429561288049").Members
+
 		var (
 			fullTasks       []Task
 			totalPoints     int
 			completedPoints int
 		)
+
+		rank := newRank()
 
 		for _, task := range *tasks {
 			fullTask := client.Task(task.Gid)
@@ -115,6 +118,14 @@ func main() {
 				completedPoints += taskPoint.(int)
 			}
 
+			// Add completed points to users
+			for _, user := range users {
+				if status == "Complete" && fullTask.Assignee.Name == user.Name {
+					rank.AddDeveloper(user.Name, taskPoint.(int))
+				} else {
+					rank.AddDeveloper(user.Name, 0)
+				}
+			}
 			fullTasks = append(fullTasks, *fullTask)
 		}
 
@@ -126,6 +137,7 @@ func main() {
 			PointsPerPerson int
 			CompletedPoints int
 			PointsLeft      int
+			Rank            Rank
 		}
 
 		resp, err := json.Marshal(Response{
@@ -136,6 +148,7 @@ func main() {
 			PointsPerPerson: totalPoints / 4,
 			CompletedPoints: completedPoints,
 			PointsLeft:      totalPoints - completedPoints,
+			Rank:            *rank,
 		})
 		if err != nil {
 			log.Panic(err)
@@ -150,8 +163,6 @@ func main() {
 			log.Panic(err)
 		}
 
-		fmt.Println(data)
-
 		var events []Event
 		err = mapstructure.Decode(data["events"], &events)
 		if err != nil {
@@ -162,8 +173,6 @@ func main() {
 			if event.wasTaskAdded() == true {
 
 				found := checkTaskExists(event.Resource.Gid)
-
-				fmt.Println(found)
 
 				if found == true {
 					continue
