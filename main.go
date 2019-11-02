@@ -106,7 +106,7 @@ func main() {
 
 				taskUID := addTask(DatabaseTask{
 					Gid:     event.Resource.Gid,
-					Created: event.Resource.Created_at,
+					Created: event.Created_at,
 				})
 
 				data := map[string]map[string]map[string]int{
